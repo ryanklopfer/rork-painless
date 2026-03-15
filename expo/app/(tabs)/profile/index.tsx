@@ -25,11 +25,14 @@ import {
   Upload,
   RefreshCw,
   CheckCircle,
+  LogOut,
+  Mail,
 } from 'lucide-react-native';
 import Colors from '@/constants/colors';
 import { useProfile, UserProfile } from '@/providers/ProfileProvider';
 import { useRehab } from '@/providers/RehabProvider';
 import { useBackup } from '@/providers/BackupProvider';
+import { useAuth } from '@/providers/AuthProvider';
 
 const EXPERIENCE_OPTIONS: { value: UserProfile['trainingExperience']; label: string }[] = [
   { value: 'beginner', label: 'Beginner' },
@@ -40,6 +43,7 @@ const EXPERIENCE_OPTIONS: { value: UserProfile['trainingExperience']; label: str
 export default function ProfileScreen() {
   const { profile, updateProfile, clearAllData, isClearingData } = useProfile();
   const { streak, checkIns, painEntries } = useRehab();
+  const { user, signOut, isSigningOut } = useAuth();
   const {
     lastBackupAt,
     autoBackupEnabled,
@@ -131,6 +135,21 @@ export default function ProfileScreen() {
     );
   }, [clearAllData]);
 
+  const handleSignOut = useCallback(() => {
+    Alert.alert(
+      'Sign Out',
+      'Are you sure you want to sign out?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Sign Out',
+          style: 'destructive',
+          onPress: () => signOut(),
+        },
+      ]
+    );
+  }, [signOut]);
+
   const totalCheckIns = checkIns.length;
   const totalPainLogs = painEntries.length;
 
@@ -150,8 +169,14 @@ export default function ProfileScreen() {
               <View style={styles.avatarRing} />
             </View>
             <Text style={styles.headerName}>
-              {profile.name || 'Set Your Name'}
+              {profile.name || user?.user_metadata?.full_name || 'Set Your Name'}
             </Text>
+            {user?.email ? (
+              <View style={styles.emailRow}>
+                <Mail color={Colors.textTertiary} size={13} />
+                <Text style={styles.emailText}>{user.email}</Text>
+              </View>
+            ) : null}
             <Text style={styles.headerSub}>
               {profile.trainingExperience
                 ? `${profile.trainingExperience.charAt(0).toUpperCase() + profile.trainingExperience.slice(1)} Level`
@@ -416,6 +441,28 @@ export default function ProfileScreen() {
                   </View>
                   <Text style={styles.dangerLabel}>
                     {isClearingData ? 'Clearing...' : 'Clear All Data'}
+                  </Text>
+                </View>
+                <ChevronRight color={Colors.coral} size={18} />
+              </TouchableOpacity>
+            </View>
+          </View>
+
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Account</Text>
+            <View style={styles.card}>
+              <TouchableOpacity
+                style={styles.dangerRow}
+                onPress={handleSignOut}
+                activeOpacity={0.6}
+                disabled={isSigningOut}
+              >
+                <View style={styles.settingLeft}>
+                  <View style={[styles.settingIcon, { backgroundColor: Colors.coral + '15' }]}>
+                    <LogOut color={Colors.coral} size={18} />
+                  </View>
+                  <Text style={styles.dangerLabel}>
+                    {isSigningOut ? 'Signing out...' : 'Sign Out'}
                   </Text>
                 </View>
                 <ChevronRight color={Colors.coral} size={18} />
@@ -799,6 +846,16 @@ const styles = StyleSheet.create({
     marginTop: 8,
     marginLeft: 4,
     fontFamily: 'monospace',
+  },
+  emailRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    marginBottom: 4,
+  },
+  emailText: {
+    fontSize: 13,
+    color: Colors.textTertiary,
   },
   versionText: {
     textAlign: 'center',
