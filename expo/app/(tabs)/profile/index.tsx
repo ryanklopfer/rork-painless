@@ -25,11 +25,15 @@ import {
   Upload,
   RefreshCw,
   CheckCircle,
+  LogOut,
+  Mail,
 } from 'lucide-react-native';
+import { router } from 'expo-router';
 import Colors from '@/constants/colors';
 import { useProfile, UserProfile } from '@/providers/ProfileProvider';
 import { useRehab } from '@/providers/RehabProvider';
 import { useBackup } from '@/providers/BackupProvider';
+import { useAuth } from '@/providers/AuthProvider';
 
 const EXPERIENCE_OPTIONS: { value: UserProfile['trainingExperience']; label: string }[] = [
   { value: 'beginner', label: 'Beginner' },
@@ -40,6 +44,7 @@ const EXPERIENCE_OPTIONS: { value: UserProfile['trainingExperience']; label: str
 export default function ProfileScreen() {
   const { profile, updateProfile, clearAllData, isClearingData } = useProfile();
   const { streak, checkIns, painEntries } = useRehab();
+  const { user, signOut, isSigningOut } = useAuth();
   const {
     lastBackupAt,
     autoBackupEnabled,
@@ -131,6 +136,27 @@ export default function ProfileScreen() {
     );
   }, [clearAllData]);
 
+  const handleSignOut = useCallback(() => {
+    Alert.alert(
+      'Sign Out',
+      'Are you sure you want to sign out?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Sign Out',
+          style: 'destructive',
+          onPress: () => {
+            signOut();
+            router.replace('/login');
+          },
+        },
+      ]
+    );
+  }, [signOut]);
+
+  const userEmail = user?.email ?? user?.user_metadata?.email as string | undefined;
+  const userProvider = user?.app_metadata?.provider as string | undefined;
+
   const totalCheckIns = checkIns.length;
   const totalPainLogs = painEntries.length;
 
@@ -152,11 +178,25 @@ export default function ProfileScreen() {
             <Text style={styles.headerName}>
               {profile.name || 'Set Your Name'}
             </Text>
-            <Text style={styles.headerSub}>
-              {profile.trainingExperience
-                ? `${profile.trainingExperience.charAt(0).toUpperCase() + profile.trainingExperience.slice(1)} Level`
-                : 'Tap to set up your profile'}
-            </Text>
+            {userEmail ? (
+              <View style={styles.emailRow}>
+                <Mail color={Colors.textTertiary} size={13} />
+                <Text style={styles.headerEmail}>{userEmail}</Text>
+              </View>
+            ) : (
+              <Text style={styles.headerSub}>
+                {profile.trainingExperience
+                  ? `${profile.trainingExperience.charAt(0).toUpperCase() + profile.trainingExperience.slice(1)} Level`
+                  : 'Tap to set up your profile'}
+              </Text>
+            )}
+            {userProvider && (
+              <View style={styles.providerBadge}>
+                <Text style={styles.providerText}>
+                  {userProvider.charAt(0).toUpperCase() + userProvider.slice(1)}
+                </Text>
+              </View>
+            )}
           </View>
 
           <View style={styles.statsRow}>
@@ -423,6 +463,28 @@ export default function ProfileScreen() {
             </View>
           </View>
 
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Account</Text>
+            <View style={styles.card}>
+              <TouchableOpacity
+                style={styles.dangerRow}
+                onPress={handleSignOut}
+                activeOpacity={0.6}
+                disabled={isSigningOut}
+              >
+                <View style={styles.settingLeft}>
+                  <View style={[styles.settingIcon, { backgroundColor: Colors.coral + '15' }]}>
+                    <LogOut color={Colors.coral} size={18} />
+                  </View>
+                  <Text style={styles.dangerLabel}>
+                    {isSigningOut ? 'Signing out...' : 'Sign Out'}
+                  </Text>
+                </View>
+                <ChevronRight color={Colors.coral} size={18} />
+              </TouchableOpacity>
+            </View>
+          </View>
+
           <Text style={styles.versionText}>RehabFlow v1.0</Text>
           <View style={{ height: 40 }} />
         </ScrollView>
@@ -552,6 +614,30 @@ const styles = StyleSheet.create({
   headerSub: {
     fontSize: 14,
     color: Colors.textSecondary,
+  },
+  emailRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    marginTop: 2,
+  },
+  headerEmail: {
+    fontSize: 13,
+    color: Colors.textTertiary,
+  },
+  providerBadge: {
+    marginTop: 8,
+    backgroundColor: Colors.teal + '15',
+    borderRadius: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+  },
+  providerText: {
+    fontSize: 11,
+    fontWeight: '600' as const,
+    color: Colors.teal,
+    textTransform: 'uppercase' as const,
+    letterSpacing: 0.5,
   },
   statsRow: {
     flexDirection: 'row',
