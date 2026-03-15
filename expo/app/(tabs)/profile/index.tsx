@@ -27,7 +27,9 @@ import {
   CheckCircle,
   LogOut,
   Mail,
+  MessageSquarePlus,
 } from 'lucide-react-native';
+import { useRouter } from 'expo-router';
 import Colors from '@/constants/colors';
 import { useProfile, UserProfile } from '@/providers/ProfileProvider';
 import { useRehab } from '@/providers/RehabProvider';
@@ -41,6 +43,7 @@ const EXPERIENCE_OPTIONS: { value: UserProfile['trainingExperience']; label: str
 ];
 
 export default function ProfileScreen() {
+  const router = useRouter();
   const { profile, updateProfile, clearAllData, isClearingData } = useProfile();
   const { streak, checkIns, painEntries } = useRehab();
   const { user, signOut, isSigningOut } = useAuth();
@@ -424,6 +427,29 @@ export default function ProfileScreen() {
             {deviceId && (
               <Text style={styles.deviceIdText}>Device: {deviceId.substring(0, 16)}...</Text>
             )}
+          </View>
+
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Support</Text>
+            <View style={styles.card}>
+              <TouchableOpacity
+                style={styles.settingRow}
+                onPress={() => router.push('/feedback')}
+                activeOpacity={0.6}
+                testID="profile-feedback"
+              >
+                <View style={styles.settingLeft}>
+                  <View style={[styles.settingIcon, { backgroundColor: Colors.primary + '15' }]}>
+                    <MessageSquarePlus color={Colors.primary} size={18} />
+                  </View>
+                  <View>
+                    <Text style={styles.settingLabel}>Send Feedback</Text>
+                    <Text style={styles.backupTimestamp}>Report bugs, request features</Text>
+                  </View>
+                </View>
+                <ChevronRight color={Colors.textTertiary} size={18} />
+              </TouchableOpacity>
+            </View>
           </View>
 
           <View style={styles.section}>

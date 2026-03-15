@@ -47,6 +47,7 @@ function RootLayoutNav() {
       <Stack.Screen name="onboarding" options={{ presentation: "fullScreenModal", headerShown: false, gestureEnabled: false }} />
       <Stack.Screen name="log-activity" options={{ presentation: "modal", headerShown: false }} />
       <Stack.Screen name="pain-science-quiz" options={{ presentation: "modal", headerShown: false }} />
+      <Stack.Screen name="feedback" options={{ presentation: "modal", headerShown: false }} />
     </Stack>
   );
 }
