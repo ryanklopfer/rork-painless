@@ -1,0 +1,9 @@
+{
+  "apps": [
+    {
+      "name": "RehabFlow",
+      "path": "expo",
+      "framework": "react-native"
+    }
+  ]
+}
